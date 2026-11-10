@@ -3,8 +3,8 @@
 
 **CS 450: Computer Networks — Semester Project**
 **Application Category:** Security Monitor (Cyber-Physical System)
-**Team Members:** _TBD_
-**Sandbox Table:** _TBD_
+**Team Members:** Isaac Gentry, Cameron Willoughby
+**Sandbox Table:** 1
 
 ---
 
