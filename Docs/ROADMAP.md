@@ -90,7 +90,7 @@ Feature work is scheduled to finish on **Wednesday Nov 25** so that Thanksgiving
 
 | Milestone | Date | Done when… | Verify with |
 |---|---|---|---|
-| **M0: Contract agreed** | Thu Nov 12 | `common/protocol.md` and the shared config file are merged to `main` | Both of you have reviewed the PR |
+| **M0: Contract agreed** | Thu Nov 12 | `Docs/protocol.md` and the shared config file are merged to `main` | Both of you have reviewed the PR |
 | **M1: Telemetry end-to-end** | Sun Nov 15 | The dashboard shows live temp/humidity/pressure at 1 Hz, and the edge status flips to offline within 6 s of stopping heartbeats | `sudo tcpdump -i eth0 -n udp port 5005 -c 10` |
 | **M2: First automated quarantine** | Sun Nov 22 | `nmap -p 5060 <SenseHAT_IP>` from the test host produces an nft drop rule and a red LED within 2 s (FR-3.8) | `sudo nft list table inet cps_quarantine` |
 | **M3: Feature complete** | Wed Nov 25 | All FRs work, the system auto-starts on both Pis, and the NAS has rows in all 3 tables | Full demo run-through (§5) |
@@ -104,7 +104,7 @@ Feature work is scheduled to finish on **Wednesday Nov 25** so that Thanksgiving
 
 **Shared (do this first, Nov 10 – 12)**
 - [ ] Set up the repo layout (see §7) and commit it to `main`
-- [ ] Write `common/protocol.md` with the exact JSON fields for S1–S5 and S8 (field names, types, units, example message). Use newline-delimited JSON on TCP and one JSON object per datagram on UDP
+- [x] Write `Docs/protocol.md` with the exact JSON fields for S1–S5 and S8 (field names, types, units, example message). Use newline-delimited JSON on TCP and one JSON object per datagram on UDP
 - [ ] Create the shared config file (`common/config.env`) with all IPs, ports, thresholds and the allowlist (NFR-2.3, FR-6.5)
 - [ ] Record both Pi eth0 IPs and the NAS IP in the config
 - [ ] Put the NAS login in `common/secrets.env` and add that file to `.gitignore`. The repo is public, so the password must never be committed. Commit a `secrets.env.example` with blank values instead
@@ -227,11 +227,10 @@ common/
   config.env            # IPs, ports, thresholds, allowlist (NFR-2.3)
   secrets.env           # NAS login, gitignored, never committed
   secrets.env.example   # same keys with blank values, committed
-  protocol.md           # JSON message formats for S1–S5, S8
 hmi/                    # Isaac
   controller/           # Dockerfile + controller.py
   docker-compose.yml
-  telemetry_receiver.py
+  hmi_ingest.py         # S1 + S5 receiver, relays to dashboard on 127.0.0.1:5075
   command_client.py
   nas_logger.py
   schema.sql            # CREATE TABLE statements for the 3 MariaDB tables
@@ -250,6 +249,7 @@ tools/
   fake_edge.py          # test HMI without the Sense HAT Pi
   attack_test.sh        # nmap / rogue-command tests (own nodes only)
 scripts/start_all.sh
+Docs/protocol.md       # JSON message formats for every socket
 docs/demo_commands.md
 ```
 
