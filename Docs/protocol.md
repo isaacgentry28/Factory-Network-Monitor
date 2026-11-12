@@ -25,6 +25,16 @@ These apply to every socket.
 | **Extra fields** | Allowed and ignored by the receiver. Missing required fields cause the message to be rejected |
 | **Rejected messages** | The receiver counts them as malformed, logs them, and keeps running. One bad message never crashes a service |
 
+### Hosts
+
+| Node | eth0 IP |
+|---|---|
+| HMI Pi | `192.168.5.12` |
+| Sense HAT Pi | `192.168.5.13` |
+| Classroom NAS (MariaDB) | '192.168.5.254'|
+
+Both Pis' clocks are NTP-synced (checked Nov 12).
+
 ### Ports
 
 | # | Proto | Port | Server (listens) | Client (sends/connects) | Purpose |

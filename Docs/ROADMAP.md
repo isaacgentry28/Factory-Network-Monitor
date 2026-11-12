@@ -106,7 +106,7 @@ Feature work is scheduled to finish on **Wednesday Nov 25** so that Thanksgiving
 - [ ] Set up the repo layout (see §7) and commit it to `main`
 - [x] Write `Docs/protocol.md` with the exact JSON fields for S1–S5 and S8 (field names, types, units, example message). Use newline-delimited JSON on TCP and one JSON object per datagram on UDP
 - [ ] Create the shared config file (`common/config.env`) with all IPs, ports, thresholds and the allowlist (NFR-2.3, FR-6.5)
-- [ ] Record both Pi eth0 IPs and the NAS IP in the config
+- [ ] Record both Pi eth0 IPs and the NAS IP in the config (Pi IPs confirmed Nov 12: HMI `192.168.5.12`, Sense HAT `192.168.5.13`; clocks NTP-synced; NAS IP still to add)
 - [ ] Put the NAS login in `common/secrets.env` and add that file to `.gitignore`. The repo is public, so the password must never be committed. Commit a `secrets.env.example` with blank values instead
 
 **Isaac (HMI Pi)**
@@ -210,7 +210,7 @@ Feature work is scheduled to finish on **Wednesday Nov 25** so that Thanksgiving
 | # | Item | Owner | Needed by | Mitigation |
 |---|---|---|---|---|
 | 1 | **NAS password could leak through the public repo** | Isaac | Nov 12 | Keep it in the gitignored `common/secrets.env`. The logger's systemd unit loads it with `EnvironmentFile=`. If it is ever pushed, ask the instructor to reset it |
-| 2 | **Pi IP addresses not recorded.** The kickoff doc has blanks and the socket table uses 192.168.5.12 / .13 tentatively | Both | Nov 12 | Record them in `common/config.env` |
+| 2 | ~~**Pi IP addresses not recorded.**~~ **Resolved Nov 12:** HMI `192.168.5.12`, Sense HAT `192.168.5.13` (in `Docs/protocol.md`). NAS IP still to record | Both | Nov 12 | Copy into `common/config.env` |
 | 3 | **Hardware only available at the sandbox table** | Both | Ongoing | Use lab time for hardware tasks. Off-lab, Isaac uses `fake_edge.py` and Cameron uses `nc` to test |
 | 4 | **nftables can lock out SSH** | Cameron | Week 13 | Test the allowlist before any real quarantine, and keep the NFR-3.5 recovery command handy |
 | 5 | **Thanksgiving week** shortens Week 14 | Both | Nov 25 | Feature freeze is Wed Nov 25, and the weekend is buffer time |
