@@ -241,6 +241,10 @@ The HMI logger runs SQL `INSERT`s into the Table 1 MariaDB database. The table s
 Both bind to `127.0.0.1` only, so they can't be reached from the network, and nothing on the Sense HAT Pi talks to them. They will be documented here once built:
 - **S8 (TCP 5070):** dashboard ↔ controller. The controller pushes quarantine updates and the dashboard sends release requests.
 - **UDP 5075:** `hmi_ingest` → dashboard. Relays live readings, edge status, and socket stats.
+- **UDP 5075 (`hmi_ingest` → dashboard):** one JSON object per datagram, told apart by `kind`:
+  - `telemetry`: the S1 reading plus `rx_ts`
+  - `edge_event`: an S5 joystick or tamper message plus `rx_ts`
+  - `edge_status`: `online` (bool), `last_heartbeat` (HMI time or null), `s1`/`s5` stats. Sent on every change and once per second
 
 ---
 

@@ -16,6 +16,8 @@ TELEMETRY_PORT = 5005      # Socket 1
 EDGE_EVENT_PORT = 5040     # Socket 5
 MAX_DATAGRAM = 4096
 OFFLINE_AFTER_S = 6.0      # FR-4.3: offline within 6 s of heartbeats stopping
+DASHBOARD_ADDR = ("127.0.0.1", 5075)   # HMI-internal: ingest -> dashboard relay
+STATUS_EVERY_S = 1.0                   # how often to push edge status to the dashboard
 
 NUMBER = (int, float)
 
@@ -98,6 +100,10 @@ class Ingest:
         self.s5_stats = {"received": 0, "malformed": 0}
         self.last_heartbeat = None   # HMI clock time of the last heartbeat
         self.edge_online = False
+                # Relay socket to the dashboard: send-only, so no bind()
+        self.relay_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.next_status = 0.0       # 0 means the first status goes out right away
+
 
     def open_udp(self, port, handler):
         """Bind a UDP socket and register it so select() calls handler when data arrives."""
@@ -107,6 +113,25 @@ class Ingest:
         self.sel.register(sock, selectors.EVENT_READ, handler)
         print(f"[ingest] listening on UDP {BIND_HOST}:{port}")
         return sock
+
+
+    def relay(self, msg):
+        """Forward one message to the dashboard.A missing dashboard must never crash ingest."""
+        try:
+            self.relay_sock.sendto(json.dumps(msg).encode("utf-8"), DASHBOARD_ADDR)
+        except OSError as e:
+            print(f"[ingest] WARNING: failed to relay to dashboard: {e}")
+
+    def send_status(self):
+        """Tell the dashboard weather the edge is online or not, plus socket stats"""
+        self.relay({
+            "kind" : "edge_status",
+            "online" : self.edge_online,
+            "last_heartbeat" : self.last_heartbeat,
+            "s1" : self.s1_stats,
+            "s5" : self.s5_stats,
+        })
+        self.next_status = time.time() + STATUS_EVERY_S
 
     def on_telemetry(self, sock):
         """Socket 1: one sensor reading per datagram."""
@@ -129,6 +154,8 @@ class Ingest:
               f"{reading['humidity']:.1f} %  "
               f"{reading['pressure_hpa']:.1f} hPa  "
               f"(delay {delay_ms:.0f} ms)")
+        self.relay({**reading, "kind": "telemetry"})
+
 
     def on_edge_event(self, sock):
         """Socket 5: heartbeat, joystick, or tamper message."""
@@ -151,16 +178,24 @@ class Ingest:
                 print(f"[S5] edge node ONLINE ({ip}), "
                       f"uptime {event['uptime_s']:.0f} s, "
                       f"{event['quarantine_count']} active quarantine(s)")
+                self.send_status()   # send the first status right away
         elif event["type"] == "joystick":
             print(f"[S5] joystick {event['direction']} {event['action']}")
         elif event["type"] == "tamper":
             print(f"[S5] TAMPER detected: {event['accel_g']:.2f} g")
 
+        if event["type"] != "heartbeat":
+            self.relay({**event, "kind": "edge_event"})
+
+
     def check_edge_online(self):
-        """Mark the edge node offline if heartbeats have stopped."""
+        """Mark the edge node offline if heartbeats have stopped, and push status once per second."""
         if self.edge_online and time.time() - self.last_heartbeat > OFFLINE_AFTER_S:
             self.edge_online = False
             print(f"[S5] edge node OFFLINE (no heartbeat for {OFFLINE_AFTER_S:.0f} s)")
+            self.send_status()
+        if time.time() >= self.next_status:
+            self.send_status()
 
     def run(self):
         s1 = self.open_udp(TELEMETRY_PORT, self.on_telemetry)
@@ -181,7 +216,10 @@ class Ingest:
                 self.sel.unregister(sock)
                 sock.close()
             self.sel.close()
+            self.relay_sock.close()
+
 
 
 if __name__ == "__main__":
     Ingest().run()
+
