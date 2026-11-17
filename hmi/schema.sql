@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS telemetry (
     hmi_rx_ts      DATETIME(3)  NOT NULL,
     temp_c         DECIMAL(5, 2) NOT NULL,
     humidity       DECIMAL(5, 2) NOT NULL,
-    pressure_hpa   DECIMAL(5, 2) NOT NULL, 
+    pressure_hpa   DECIMAL(6, 2) NOT NULL, 
     INDEX idx_telemetry_rx (hmi_rx_ts)
 );
 
