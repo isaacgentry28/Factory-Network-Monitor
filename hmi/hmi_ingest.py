@@ -10,6 +10,7 @@ import json
 import selectors
 import socket
 import time
+from hmi.nas_logger import NasLogger
 
 BIND_HOST = "0.0.0.0"
 TELEMETRY_PORT = 5005      # Socket 1
@@ -103,6 +104,7 @@ class Ingest:
                 # Relay socket to the dashboard: send-only, so no bind()
         self.relay_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.next_status = 0.0       # 0 means the first status goes out right away
+        self.nas = NasLogger()
 
 
     def open_udp(self, port, handler):
@@ -130,6 +132,7 @@ class Ingest:
             "last_heartbeat" : self.last_heartbeat,
             "s1" : self.s1_stats,
             "s5" : self.s5_stats,
+            "nas" : self.nas.stats(),
         })
         self.next_status = time.time() + STATUS_EVERY_S
 
@@ -155,6 +158,7 @@ class Ingest:
               f"{reading['pressure_hpa']:.1f} hPa  "
               f"(delay {delay_ms:.0f} ms)")
         self.relay({**reading, "kind": "telemetry"})
+        self.nas.log_telemetry(reading)
 
 
     def on_edge_event(self, sock):
@@ -181,8 +185,12 @@ class Ingest:
                 self.send_status()   # send the first status right away
         elif event["type"] == "joystick":
             print(f"[S5] joystick {event['direction']} {event['action']}")
+            if event["direction"] == "middle" and event["action"] == "pressed":
+                self.nas.log_event("operator_ack", event["node"], rx_ts, edge_ts=event["ts"])
         elif event["type"] == "tamper":
             print(f"[S5] TAMPER detected: {event['accel_g']:.2f} g")
+            self.nas.log_event("tamper", event["node"], rx_ts, edge_ts=event["ts"],
+                               details={"accel_g": event["accel_g"]})
 
         if event["type"] != "heartbeat":
             self.relay({**event, "kind": "edge_event"})
@@ -198,6 +206,7 @@ class Ingest:
             self.send_status()
 
     def run(self):
+        self.nas.start()
         s1 = self.open_udp(TELEMETRY_PORT, self.on_telemetry)
         s5 = self.open_udp(EDGE_EVENT_PORT, self.on_edge_event)
         try:
@@ -217,6 +226,7 @@ class Ingest:
                 sock.close()
             self.sel.close()
             self.relay_sock.close()
+            self.nas.stop()
 
 
 

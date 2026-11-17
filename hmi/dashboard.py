@@ -78,20 +78,22 @@ class Dashboard:
 
     def poll(self):
         """Read every datagram waiting on the socket, then schedule the next poll."""
-        while True:
-            try:
-                data, _addr = self.sock.recvfrom(MAX_DATAGRAM)
-            except BlockingIOError:
-                break                       # nothing left to read
-            try:
-                msg = json.loads(data.decode("utf-8"))
-            except (UnicodeDecodeError, json.JSONDecodeError):
-                continue                    # skip bad datagrams, never crash the GUI
-            if isinstance(msg, dict):
-                self.handle(msg)
+        try:
+            while True:
+                try:
+                    data, _addr = self.sock.recvfrom(MAX_DATAGRAM)
+                except BlockingIOError:
+                    break                       # nothing left to read
+                try:
+                    msg = json.loads(data.decode("utf-8"))
+                    if isinstance(msg, dict):
+                        self.handle(msg)
+                except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as e:
+                    print(f"[dashboard] skipped bad message: {e}")
+            self.check_ingest_alive()
+        finally:
+            self.root.after(POLL_MS, self.poll)   # ALWAYS reschedule, even after an error
 
-        self.check_ingest_alive()
-        self.root.after(POLL_MS, self.poll)
 
     def handle(self, msg):
         kind = msg.get("kind")
