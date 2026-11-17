@@ -105,15 +105,15 @@ Feature work is scheduled to finish on **Wednesday Nov 25** so that Thanksgiving
 **Shared (do this first, Nov 10 – 12)**
 - [ ] Set up the repo layout (see §7) and commit it to `main`
 - [x] Write `Docs/protocol.md` with the exact JSON fields for S1–S5 and S8 (field names, types, units, example message). Use newline-delimited JSON on TCP and one JSON object per datagram on UDP
-- [ ] Create the shared config file (`common/config.env`) with all IPs, ports, thresholds and the allowlist (NFR-2.3, FR-6.5)
-- [ ] Record both Pi eth0 IPs and the NAS IP in the config (Pi IPs confirmed Nov 12: HMI `192.168.5.12`, Sense HAT `192.168.5.13`; clocks NTP-synced; NAS IP still to add)
+- [X] Create the shared config file (`common/config.env`) with all IPs, ports, thresholds and the allowlist (NFR-2.3, FR-6.5)
+- [X] Record both Pi eth0 IPs and the NAS IP in the config (HMI `192.168.5.12`, Sense HAT `192.168.5.13`, NAS `192.168.5.254`; clocks NTP-synced)
 - [ ] Put the NAS login in `common/secrets.env` and add that file to `.gitignore`. The repo is public, so the password must never be committed. Commit a `secrets.env.example` with blank values instead
 
 **Isaac (HMI Pi)**
 - [X] Telemetry receiver: UDP 5005 listener with JSON parsing and sequence-gap detection (S1)
 - [X] Heartbeat/joystick receiver: UDP 5040 listener with online/offline tracking (S5, FR-4.3)
 - [X] Connect to the Table 1 MariaDB database from the HMI Pi (`mariadb -h <NAS_IP> -u <user> -p`, or the `mysql` client) and create the `telemetry`, `security_events` and `quarantine_actions` tables. Save the `CREATE TABLE` statements in `hmi/schema.sql`
-- [ ] Pick the Python driver for the logger (`PyMySQL` is pure Python and installs easily on the Pi)
+- [X] Pick the Python driver for the logger: `PyMySQL` (`sudo apt install python3-pymysql`)
 - [X] Tkinter dashboard skeleton: full-screen, shows live sensor values and edge online/offline status (FR-4.1–4.3)
 - [X] Write `tools/fake_edge.py`, which sends fake telemetry, heartbeats and security events so you can test without Cameron's Pi
 
@@ -136,7 +136,7 @@ Feature work is scheduled to finish on **Wednesday Nov 25** so that Thanksgiving
 - [ ] Dockerfile (`python:3.11-slim`, ARM64) and `docker-compose.yml`: publish 5020 on all interfaces and 5070 on `127.0.0.1` only, use `restart: unless-stopped`, and pass settings as env vars (FR-6.1–6.7)
 - [ ] S8 dashboard ↔ controller channel on 127.0.0.1:5070 (pushes quarantine updates and accepts release requests)
 - [ ] Command client: TCP 5010, sends LED/setpoint commands and shows the acks (S2)
-- [ ] NAS logger: batch telemetry every 10 s, write security events within 2 s, log quarantine actions with their result, and buffer up to 10k records while the NAS is down (FR-5.1–5.6)
+- [ ] NAS logger: batch telemetry every 10 s, write security events within 2 s, log quarantine actions with their result, and buffer up to 10k records while the NAS is down (FR-5.1–5.6). **Nov 17: built and wired into `hmi_ingest`; telemetry, tamper and operator_ack verified on the NAS. Remaining: quarantine actions (needs the controller)**
 
 **Cameron (Sense HAT Pi)**
 - [ ] Command service on TCP 5010: execute commands only from the HMI IP, reject all others and report them (S2, FR-2.5)
