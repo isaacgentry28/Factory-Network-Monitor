@@ -53,6 +53,14 @@ class NasLogger:
         self.dropped = 0
         self.thread = threading.Thread(target=self._run, name="nas_logger", daemon=True)
 
+        self.db_settings = {
+            "host": config.get("NAS_IP"),
+            "port": config.get_int("NAS_PORT", 3306),
+            "user": config.get("NAS_DB_USER"),
+            "password": config.get("NAS_DB_PASSWORD"),
+            "database": config.get("NAS_DB_NAME"),
+        }
+
     # ---- Public API (safe to call from any thread, never blocks) ----
 
     def start(self):
@@ -117,7 +125,10 @@ class NasLogger:
             now = time.monotonic()
             if self.urgent.is_set() or now >= next_flush or stopping:
                 self.urgent.clear()
-                self._flush()
+                try:
+                    self._flush()
+                except Exception as e:
+                    print(f"[nas] unexpected error in writer: {e!r}")
                 if now >= next_flush:
                     next_flush = now + TELEMETRY_FLUSH_S
             if stopping:
@@ -132,15 +143,10 @@ class NasLogger:
         if time.monotonic() < self.next_retry:
             return False
         try:
-            self.conn = pymysql.connect(
-                host=config.get("NAS_IP"),
-                port=config.get_int("NAS_PORT", 3306),
-                user=config.get("NAS_DB_USER"),
-                password=config.get("NAS_DB_PASSWORD"),
-                database=config.get("NAS_DB_NAME"),
-                connect_timeout=3, read_timeout=5, write_timeout=5,
-            )
-            print(f"[nas] connected to {config.get('NAS_IP')}")
+            self.conn = pymysql.connect(**self.db_settings,
+                                        connect_timeout=3, read_timeout=5, write_timeout=5)
+            print(f"[nas] connected to {self.db_settings['host']}")
+
             return True
         except pymysql.MySQLError as e:
             self.next_retry = time.monotonic() + RETRY_S
