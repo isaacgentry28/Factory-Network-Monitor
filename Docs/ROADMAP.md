@@ -110,12 +110,12 @@ Feature work is scheduled to finish on **Wednesday Nov 25** so that Thanksgiving
 - [ ] Put the NAS login in `common/secrets.env` and add that file to `.gitignore`. The repo is public, so the password must never be committed. Commit a `secrets.env.example` with blank values instead
 
 **Isaac (HMI Pi)**
-- [X]elemetry receiver: UDP 5005 listener with JSON parsing and sequence-gap detection (S1)
+- [X] Telemetry receiver: UDP 5005 listener with JSON parsing and sequence-gap detection (S1)
 - [X] Heartbeat/joystick receiver: UDP 5040 listener with online/offline tracking (S5, FR-4.3)
 - [X] Connect to the Table 1 MariaDB database from the HMI Pi (`mariadb -h <NAS_IP> -u <user> -p`, or the `mysql` client) and create the `telemetry`, `security_events` and `quarantine_actions` tables. Save the `CREATE TABLE` statements in `hmi/schema.sql`
 - [ ] Pick the Python driver for the logger (`PyMySQL` is pure Python and installs easily on the Pi)
 - [X] Tkinter dashboard skeleton: full-screen, shows live sensor values and edge online/offline status (FR-4.1–4.3)
-- [ ] Write `tools/fake_edge.py`, which sends fake telemetry, heartbeats and security events so you can test without Cameron's Pi
+- [X] Write `tools/fake_edge.py`, which sends fake telemetry, heartbeats and security events so you can test without Cameron's Pi
 
 **Cameron (Sense HAT Pi)**
 - [ ] Sensor daemon: sample temp/humidity/pressure at 1 Hz and send over UDP 5005 (S1, FR-3.1)
