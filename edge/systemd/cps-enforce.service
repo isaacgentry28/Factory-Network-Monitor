@@ -1,0 +1,17 @@
+[Unit]
+Description=EdgeGuard nftables enforcement agent (S4, TCP 5030)
+Wants=network-online.target
+After=network-online.target
+PartOf=cps-edge.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=@REPO@
+ExecStart=/usr/bin/python3 -m edge.enforcement_agent
+Environment=PYTHONUNBUFFERED=1
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=cps-edge.target

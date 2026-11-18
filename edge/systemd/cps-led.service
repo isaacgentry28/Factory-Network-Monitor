@@ -1,0 +1,17 @@
+[Unit]
+Description=EdgeGuard LED matrix status driver
+Wants=network-online.target
+After=network-online.target
+PartOf=cps-edge.target
+
+[Service]
+Type=simple
+User=@USER@
+WorkingDirectory=@REPO@
+ExecStart=/usr/bin/python3 -m edge.led_status
+Environment=PYTHONUNBUFFERED=1
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=cps-edge.target

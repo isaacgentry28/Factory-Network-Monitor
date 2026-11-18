@@ -1,0 +1,17 @@
+[Unit]
+Description=EdgeGuard sensor daemon (S1 telemetry, UDP 5005)
+Wants=network-online.target
+After=network-online.target
+PartOf=cps-edge.target
+
+[Service]
+Type=simple
+User=@USER@
+WorkingDirectory=@REPO@
+ExecStart=/usr/bin/python3 -m edge.sensor_daemon
+Environment=PYTHONUNBUFFERED=1
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=cps-edge.target
