@@ -34,7 +34,7 @@ services:
     command: ["python3", "-m", "hmi.hmi_ingest"]
     restart: unless-stopped
     network_mode: host                      # S1/S5 on the Pi's ports; relay to 127.0.0.1:5075
-    user: "1000:1000"                       # not root (NFR-2.4)
+    user: "1001:1001"                       # not root (NFR-2.4)
     env_file:
       - common/config.env
       - common/secrets.env                  # NAS login for the logger
@@ -48,7 +48,7 @@ services:
     command: ["python3", "-m", "hmi.dashboard"]
     restart: unless-stopped                 # keeps retrying until the desktop is up after boot
     network_mode: host                      # 127.0.0.1:5075 from ingest, 127.0.0.1:5070 to the controller
-    user: "1000:1000"                       # same user as the Pi desktop, so X lets it draw
+    user: "1001:1001"                       # same user as the Pi desktop, so X lets it draw
     environment:
       DISPLAY: ":0"
     volumes:
