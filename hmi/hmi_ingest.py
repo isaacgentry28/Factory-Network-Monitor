@@ -11,6 +11,7 @@ import selectors
 import socket
 import time
 from hmi.nas_logger import NasLogger
+from common.messages import decode_json, require_fields, NUMBER 
 
 BIND_HOST = "0.0.0.0"
 TELEMETRY_PORT = 5005      # Socket 1
@@ -20,7 +21,7 @@ OFFLINE_AFTER_S = 6.0      # FR-4.3: offline within 6 s of heartbeats stopping
 DASHBOARD_ADDR = ("127.0.0.1", 5075)   # HMI-internal: ingest -> dashboard relay
 STATUS_EVERY_S = 1.0                   # how often to push edge status to the dashboard
 
-NUMBER = (int, float)
+
 
 # ---- Message formats (the contract with Cameron -> common/protocol.md) ----
 
@@ -43,25 +44,6 @@ EDGE_EVENT_FIELDS = {
 
 # ---- Parsing / validation ----
 
-def decode_json(data):
-    """Bytes -> dict, or raise ValueError."""
-    try:
-        msg = json.loads(data.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as e:
-        raise ValueError(f"not valid JSON: {e}")
-    if not isinstance(msg, dict):
-        raise ValueError("JSON is not an object")
-    return msg
-
-
-def require_fields(msg, fields):
-    """Raise ValueError if msg is missing a field or a field has the wrong type."""
-    for field, allowed in fields.items():
-        if field not in msg:
-            raise ValueError(f"missing field '{field}'")
-        # bool is a subclass of int in Python, so reject it explicitly
-        if isinstance(msg[field], bool) or not isinstance(msg[field], allowed):
-            raise ValueError(f"field '{field}' has the wrong type")
 
 
 def parse_telemetry(data):
