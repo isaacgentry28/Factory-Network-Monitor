@@ -1,0 +1,7 @@
+.git
+Docs
+edge
+tools
+data
+**/__pycache__
+common/secrets.env
