@@ -212,6 +212,11 @@ class Ingest:
 
 
 
+def _stop(signum, frame):
+    raise KeyboardInterrupt          # reuse the Ctrl+C path: flush NAS, close sockets
+
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGTERM, _stop)
     Ingest().run()
 
