@@ -6,6 +6,7 @@ Step 3: Listen on two UDP sockets at once using selectors:
   Socket 5 (UDP 5040) - heartbeats, joystick presses, tamper events
 and track whether the Sense HAT Pi is online.
 """
+import signal
 import json
 import selectors
 import socket
