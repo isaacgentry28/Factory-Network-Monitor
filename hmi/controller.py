@@ -20,6 +20,7 @@ import selectors
 import socket
 import time
 import uuid
+import signal
 from pathlib import Path
 
 from common import config
@@ -377,5 +378,9 @@ class Controller:
             self.sel.close()
 
 
+def _stop(signum, frame):
+    raise KeyboardInterrupt
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, _stop)
     Controller().run()

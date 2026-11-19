@@ -1,0 +1,28 @@
+# docker-compose.yml - quarantine controller on the HMI Pi (FR-6.2)
+#   Start/rebuild:  docker compose up -d --build
+#   Live logs:      docker compose logs -f          (FR-6.7)
+#   Status:         docker compose ps
+#   Stop:           docker compose down
+services:
+  controller:
+    build:
+      context: .
+      dockerfile: hmi/Dockerfile
+    image: edgeguard-controller
+    container_name: edgeguard-controller
+    restart: unless-stopped                 # FR-6.6: back up after a crash or reboot
+    network_mode: bridge                    # NFR-3.4: Docker's default bridge; eth0 untouched
+    env_file:
+      - common/config.env                   # FR-6.5: settings come from the environment
+      - common/secrets.env                  # NAS login, injected at runtime, never in the image
+    environment:
+      CONTROL_BIND: 0.0.0.0                 # inside the container; still localhost-only on the host (below)
+      CONTROLLER_STATE_FILE: /app/data/controller_state.json
+    ports:
+      - "5020:5020"                         # S3: reachable from the Sense HAT Pi (FR-6.3)
+      - "127.0.0.1:5070:5070"               # S8: dashboard only, unreachable from the network (FR-6.4)
+    volumes:
+      - controller-data:/app/data           # quarantine list survives rebuilds
+
+volumes:
+  controller-data:

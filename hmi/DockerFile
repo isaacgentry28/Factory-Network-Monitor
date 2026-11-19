@@ -1,0 +1,18 @@
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir pymysql==1.1.1
+
+COPY common/ common/
+COPY hmi/controller.py hmi/nas_logger.py hmi/
+
+RUN useradd --system --no-create-home edgeguard \
+    && mkdir -p /app/data && chown edgeguard /app/data
+USER edgeguard
+
+EXPOSE 5020 5070
+CMD ["python", "-m", "hmi.controller"]
