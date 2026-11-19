@@ -76,7 +76,7 @@ def bind_with_retry(sock, addr, compnent):
             time.sleep(RETRY_S)
             
 def tcp_server(ip, port, component, backlog=5):
-    sock = socket.sockert(socket.AF_INET, socket.SOCK_STREAM)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) #fast restart after a crash
     bind_with_retry(sock, (ip, port), component)
     sock.listen(backlog)
@@ -117,7 +117,7 @@ def read_json_lines(conn, max_line=4096):
             return
         
 #---Security events + event reporter + S3 ----#
-_relay_sock = socket.socker(socket.AF_INET, socket. DOCK_DGRAM)
+_relay_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 def report_event(event, src_ip, src_port, details=None):
     """

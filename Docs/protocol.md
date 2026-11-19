@@ -48,6 +48,7 @@ Both Pis' clocks are NTP-synced (checked Nov 12).
 | S7 | TCP | 3306 | Classroom NAS (MariaDB) | HMI logger | SQL logging |
 | S8 | TCP | 5070 (127.0.0.1) | HMI controller | HMI dashboard | HMI-internal, see below |
 | (n/a) | UDP | 5075 (127.0.0.1) | HMI dashboard | HMI `hmi_ingest` | HMI-internal, see below |
+| (n/a) | UDP | 5050 (127.0.0.1) | Edge `event_reporter` | Edge `canary_listener`, `command_service`, `enforcement_agent` | Edge-internal, see below |
 
 ---
 
@@ -236,6 +237,26 @@ It never reads or replies to anything the connecting host sends.
 
 The HMI logger runs SQL `INSERT`s into the Table 1 MariaDB database. The table schema goes in `hmi/schema.sql`. The NAS login lives in `common/secrets.env`, which is gitignored and must never be committed.
 
+## Edge-Internal Channels (Sense HAT Pi)
+
+Built by Cameron in `edge/` (commit `802f49d`). Each edge component is its own process (FR-2.7), and they share information in two ways:
+
+- **UDP 127.0.0.1:5050, the local event relay.** `canary_listener`, `command_service` and `enforcement_agent` call `edgelib.report_event()`, which sends one S3-format `security_event` JSON object per datagram to `event_reporter`. The reporter holds the single persistent S3 connection to the controller, reconnects every 2 s, and buffers up to 1,000 events while disconnected.
+- **State files in `EDGE_STATE_DIR`** (default `/tmp/edgeguard`), each replaced atomically:
+
+| File | Written by | Read by | Contents |
+|---|---|---|---|
+| `quarantine.json` | `enforcement_agent` | `led_status`, `heartbeat` | `{"hosts": {ip: {order_id, reason, since}}, "updated": ts}`, rebuilt from the live nft rules |
+| `alert.json` | `heartbeat` (tamper sets it, middle joystick press deletes it) | `led_status` | `{"active": true, "reason": "tamper", "ts": ...}` |
+| `led_pattern.json` | `command_service` | `led_status` | `{"pattern": "test", "ts": ...}`. Patterns: `test`, `checker`, `blue`, `white` |
+| `setpoints.json` | `command_service` | `heartbeat` | e.g. `{"tamper_g": 2.0}` |
+
+**LED priority** (`led_status`): red if any host is quarantined, then amber for an unacknowledged alert, then the commanded pattern, then green.
+
+**Notes for the HMI side:**
+- `order_result.order_id` and `ack.request_id` can be `null` when the edge couldn't parse the request.
+- The canary only fires on a completed TCP handshake. `sudo nmap` defaults to a SYN scan, which never completes it, so use `nmap -sT -p 5060 <SenseHAT_IP>` or `nc -z <SenseHAT_IP> 5060`.
+
 ## HMI-Internal Channels (S8 and 5075)
 
 Both bind to `127.0.0.1` only, so they can't be reached from the network, and nothing on the Sense HAT Pi talks to them. They will be documented here once built:
@@ -255,4 +276,4 @@ Both bind to `127.0.0.1` only, so they can't be reached from the network, and no
 | See what your sender transmits (Cameron) | `nc -ul 5005` or `nc -ul 5040` on any machine, then point your daemon at that machine's IP |
 | Send a fake reading to the HMI (Isaac) | `echo '{"node":"sensehat","seq":1,"ts":1731250000,"temp_c":23.4,"humidity":41.2,"pressure_hpa":1012.8}' \| nc -u -w1 <HMI_IP> 5005` |
 | Send a fake quarantine order to the edge (Cameron) | `echo '{"type":"order","order_id":"q-test","action":"quarantine","target_ip":"192.168.5.99","reason":"test"}' \| nc <SenseHAT_IP> 5030` |
-| Trip the canary (from the team test host only, NFR-4.3) | `nmap -p 5060 <SenseHAT_IP>` |
+| Trip the canary (from the team test host only, NFR-4.3) | `nmap -sT -p 5060 <SenseHAT_IP>` (a connect scan; see the canary note above) |

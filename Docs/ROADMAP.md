@@ -92,7 +92,7 @@ Feature work is scheduled to finish on **Wednesday Nov 25** so that Thanksgiving
 |---|---|---|---|
 | **M0: Contract agreed** | Thu Nov 12 | `Docs/protocol.md` and the shared config file are merged to `main` | Both of you have reviewed the PR |
 | **M1: Telemetry end-to-end** | Sun Nov 15 | The dashboard shows live temp/humidity/pressure at 1 Hz, and the edge status flips to offline within 6 s of stopping heartbeats | `sudo tcpdump -i eth0 -n udp port 5005 -c 10` |
-| **M2: First automated quarantine** | Sun Nov 22 | `nmap -p 5060 <SenseHAT_IP>` from the test host produces an nft drop rule and a red LED within 2 s (FR-3.8) | `sudo nft list table inet cps_quarantine` |
+| **M2: First automated quarantine** | Sun Nov 22 | `nmap -sT -p 5060 <SenseHAT_IP>` from the test host produces an nft drop rule and a red LED within 2 s (FR-3.8) | `sudo nft list table inet cps_quarantine` |
 | **M3: Feature complete** | Wed Nov 25 | All FRs work, the system auto-starts on both Pis, and the NAS has rows in all 3 tables | Full demo run-through (§5) |
 | **M4: Expo-ready** | Tue Dec 1 | Cold boot is under 180 s (time recorded in README), `docs/demo_commands.md` is done, and the demo has been rehearsed twice | Stopwatch + rehearsal |
 
@@ -197,7 +197,7 @@ Feature work is scheduled to finish on **Wednesday Nov 25** so that Thanksgiving
 1. **Cold boot** both Pis and start the stopwatch. The dashboard shows live telemetry in under 180 s.
 2. **Live telemetry:** run `sudo tcpdump -i eth0 -n udp port 5005 -c 10` to show 1 reading per second.
 3. **Authorized command:** press the LED test pattern button on the dashboard, see the pattern on the Sense HAT, and the dashboard shows the ack.
-4. **Canary probe:** run `nmap -p 5060 <SenseHAT_IP>` from the test host. Within 2 s you should see a new nft rule, a red LED, and an entry in the dashboard quarantine list.
+4. **Canary probe:** run `nmap -sT -p 5060 <SenseHAT_IP>` from the test host. Within 2 s you should see a new nft rule, a red LED, and an entry in the dashboard quarantine list.
 5. **Release** the host from the dashboard. The rule is removed and the LED goes green.
 6. **Unauthorized commands:** send 3 rejected commands within 60 s, which triggers a quarantine.
 7. **Tamper:** shake the Pi to get an amber LED and a dashboard alert, then press the joystick to acknowledge it.
