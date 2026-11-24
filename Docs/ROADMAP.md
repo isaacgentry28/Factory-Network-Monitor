@@ -94,7 +94,7 @@ Feature work is scheduled to finish on **Wednesday Nov 25** so that Thanksgiving
 | **M1: Telemetry end-to-end** | Sun Nov 15 | The dashboard shows live temp/humidity/pressure at 1 Hz, and the edge status flips to offline within 6 s of stopping heartbeats | `sudo tcpdump -i eth0 -n udp port 5005 -c 10` |
 | **M2: First automated quarantine** | Sun Nov 22 | `nmap -sT -p 5060 <SenseHAT_IP>` from the test host produces an nft drop rule and a red LED within 2 s (FR-3.8) | `sudo nft list table inet cps_quarantine` |
 | **M3: Feature complete** | Wed Nov 25 | All FRs work, the system auto-starts on both Pis, and the NAS has rows in all 3 tables | Full demo run-through (§5) |
-| **M4: Expo-ready** | Tue Dec 1 | Cold boot is under 180 s (time recorded in README), `docs/demo_commands.md` is done, and the demo has been rehearsed twice | Stopwatch + rehearsal |
+| **M4: Expo-ready** | Tue Dec 1 | Cold boot is under 180 s (time recorded in README), `Docs/demo_commands.md` is done, and the demo has been rehearsed twice | Stopwatch + rehearsal |
 
 ---
 
@@ -180,13 +180,13 @@ Feature work is scheduled to finish on **Wednesday Nov 25** so that Thanksgiving
 
 **Thanksgiving buffer (Nov 26 – 29)**, work that doesn't need the hardware:
 - [ ] README: architecture/socket diagram, socket allocation table, step-by-step launch instructions (NFR-6.5)
-- [ ] `docs/demo_commands.md` with every verification command (NFR-5.5)
+- [x] `Docs/demo_commands.md` with every verification command (NFR-5.5) **Drafted Nov 24; review in the lab rehearsal**
 - [ ] SQL query that returns the full quarantine history by joining `quarantine_actions` and `security_events` (FR-5.7)
 - [ ] `scripts/start_all.sh` as a manual fallback
 
 ### Week 15 (Nov 30 – Expo): Verify and Rehearse
 - [ ] Cold-reboot both Pis, time how long until the system is operational, and record it in the README (NFR-6.1, NFR-6.6)
-- [ ] Run every command in `docs/demo_commands.md` on the live system
+- [ ] Run every command in `Docs/demo_commands.md` on the live system
 - [ ] Do 2 full demo rehearsals, swapping who drives the demo
 - [ ] Back up the repo to a USB drive and confirm everything is pushed to GitHub
 
@@ -214,7 +214,7 @@ Feature work is scheduled to finish on **Wednesday Nov 25** so that Thanksgiving
 | 3 | **Hardware only available at the sandbox table** | Both | Ongoing | Use lab time for hardware tasks. Off-lab, Isaac uses `fake_edge.py` and Cameron uses `nc` to test |
 | 4 | **nftables can lock out SSH** | Cameron | Week 13 | Test the allowlist before any real quarantine, and keep the NFR-3.5 recovery command handy |
 | 5 | **Thanksgiving week** shortens Week 14 | Both | Nov 25 | Feature freeze is Wed Nov 25, and the weekend is buffer time |
-| 6 | **Folder case mismatch:** NFR-5.5 says `docs/demo_commands.md`, but the repo has `Docs/`, and the Pis' Linux file system is case-sensitive | Both | Nov 12 | Pick one name and update the doc or the folder |
+| 6 | ~~**Folder case mismatch**~~ **Resolved:** all docs live in `Docs/`. NFR-5.5 in the final project document should say `Docs/demo_commands.md` | Both | Before final doc | Update the NFR-5.5 wording |
 | 7 | **Socket table incomplete:** the Part 4 table is missing the S2 payload and the S7/S8 rows | Both | Before final doc | Fill these in when writing `protocol.md` |
 | 8 | **Isaac's task list is longer** (dashboard + Docker + NAS) | Both | Week 13 | If Isaac falls behind, Cameron takes the attack-test script and `demo_commands.md` |
 
@@ -250,7 +250,7 @@ tools/
   attack_test.sh        # nmap / rogue-command tests (own nodes only)
 scripts/start_all.sh
 Docs/protocol.md       # JSON message formats for every socket
-docs/demo_commands.md
+Docs/demo_commands.md
 ```
 
 **Git workflow:**
