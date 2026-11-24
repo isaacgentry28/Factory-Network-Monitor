@@ -22,19 +22,27 @@ C = "sensor"
 HMI_IP = edgelib.HMI_IP
 TELEMETRY_PORT = config.get_int("TELEMETRY_PORT")
 SAMPLE_EVERY_S = 1.0
+TEMP_OFFSET_C = config.get_float("TEMP_OFFSET_C", 17.5)
 
-def read_sensors(sense):
+def read_sensors(sense, temp_offset_c):
     """Return plain floats (never strings/bools bc HMI rejects those)."""
+    raw_c = float(sense.get_temperature())
     return {
-        "temp_c": round(float(sense.get_temperature()), 2), 
-        "humidity": round(float(sense.get_humidity()), 2), 
-        "pressure_hpa": round(float(sense.get_pressure()), 2), 
+        "temp_c": round(raw_c - temp_offset_c, 2),   # corrected to room temperature
+        "temp_raw_c": round(raw_c, 2),               # extra field, for calibration
+        "humidity": round(float(sense.get_humidity()), 2),
+        "pressure_hpa": round(float(sense.get_pressure()), 2),
     }
+
 
 def main():
     sense = edgelib.get_sensehat(C)
+    # The fake Sense HAT already returns room temperature, so don't correct it
+    offset = 0.0 if isinstance(sense, edgelib.FakeSenseHat) else TEMP_OFFSET_C
+    log(C, f"temperature correction: -{offset:.1f} C")
+
     #The pressure sensor often returns 0 on its very first read; probably need to throw one away.
-    read_sensors(sense)
+    read_sensors(sense, offset)
     time.sleep(0.2)
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #client: OS picks the port
@@ -45,7 +53,7 @@ def main():
     try:
         while True:
             seq +=1 
-            reading = {"node": edgelib.NODE, "seq": seq, "ts": time.time(), **read_sensors(sense)}
+            reading = {"node": edgelib.NODE, "seq": seq, "ts": time.time(), **read_sensors(sense, offset)}
             try:
                 sock.sendto(json.dumps(reading).encode("utf-8"), (HMI_IP, TELEMETRY_PORT))
             except OSError as e:

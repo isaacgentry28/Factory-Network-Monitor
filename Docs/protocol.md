@@ -61,7 +61,8 @@ Both Pis' clocks are NTP-synced (checked Nov 12).
 | `node` | string | `"sensehat"` |
 | `seq` | integer | Starts at 1 and goes up by 1 per reading. It may reset to 1 when the daemon restarts, and the HMI handles that |
 | `ts` | number | Sense HAT clock when the reading was taken |
-| `temp_c` | number | Temperature, °C |
+| `temp_c` | number | Temperature, °C, **corrected to room temperature** (the raw reading minus `TEMP_OFFSET_C`, because the Sense HAT sits over the CPU) |
+| `temp_raw_c` | number | *(optional extra field)* Uncorrected Sense HAT reading, °C. Kept for calibration; the HMI ignores it |
 | `humidity` | number | Relative humidity, % |
 | `pressure_hpa` | number | Barometric pressure, hPa |
 
